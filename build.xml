@@ -1,0 +1,117 @@
+<!-- Standard build script -->
+<project name="PandaKingsTaeKwonDo" default="dist" basedir=".">
+
+	<!-- specify properties in build.properties -->
+	<property file="build.properties" />
+
+	<!-- main build classpath -->
+	<path id="build.class.path">
+		<fileset dir="${mainLibDir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- runtime build classpath -->
+	<path id="runtime.class.path">
+		<fileset dir="${mainLibDir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- generation buildpath -->
+	<path id="gen.class.path">
+		<fileset dir="${genLibDir}">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${mainLibDir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	
+	<!-- Make project JAR file -->
+		<target name="dist" depends="compile">
+			<jar destfile="${distDir}/${jarName}.jar" manifest="${mainBuildDir}/${manifestForJAR}">
+				<fileset dir="${mainBuildDir}">
+			        <include name="**/*"/>
+				</fileset>
+				<fileset dir="${srcDir}">
+					<include name="**/*"/>
+					<exclude name="**/*.java"/>
+		      </fileset>
+			</jar>
+		</target>
+	
+	<!-- Clean out previously built project files and javadoc -->
+	<target name="clean">
+		<!-- Deletes the folder containing the packaged final result -->
+		<delete dir="${distDir}" quiet="true" />
+		
+		<!-- Deletes the folder containing compiled Java -->
+		<delete dir="${mainBuildDir}" includeemptydirs="true" quiet="true" />
+
+		<!-- remove all generated files -->
+		<delete dir="${genDir}" quiet="true" />
+	</target>
+
+	<!-- Setup Steps Required Before Compilation -->
+	<target name="init">
+
+		<!-- creates the folder to contain the packaged final result (JAR file) -->
+		<mkdir dir="${distDir}" />
+
+		<!-- creates the folder to contain the compiled Java source -->
+		<mkdir dir="${mainBuildDir}" />
+
+		<!-- creates (generated/docs/javadoc) -->
+		<mkdir dir="${genJavadocDir}" />
+
+		<!-- creates (generated/src/main/java) -->
+		<mkdir dir="${genMainJavaSrcDir}" />
+	</target>
+
+	<!-- compiles java source -->
+	<target name="compile" depends="init">
+		<javac destdir="${mainBuildDir}" deprecation="yes" debug="yes"
+			includeantruntime="false">
+			<src path="${mainJavaSrcDir}" />
+			<classpath refid="build.class.path" />
+		</javac>
+	</target>
+
+	<target name="clean-gen-src">
+		<delete dir="${genSrcDir}" quiet="true" />
+	</target>
+
+	<!-- runs the program with compiled code (not final JAR) -->
+		<target name="run" depends="compile">
+			<java classname="${mainClass}" fork="yes">
+				<classpath refid="runtime.class.path" />
+				<classpath>
+					<pathelement location="${mainBuildDir}" />
+				</classpath>
+				<arg line="${args}" />
+			</java>
+		</target>
+	
+	<!-- runs the program using final Jar -->
+	<target name="runJar" depends="dist">
+			<java classname="${mainClass}" fork="yes">
+				<classpath refid="runtime.class.path" />
+				<classpath>
+					<pathelement location="${distDir}/${jarName}.jar" />
+				</classpath>
+				<arg line="${args}" />
+			</java>
+		</target>
+
+	
+	<!-- Make the JavaDoc -->
+	<target name="javadoc" depends="init">
+
+		<!-- generate the javadoc -->
+		<javadoc sourcepath="${mainJavaSrcDir}" packagenames="${javadocPackageNames}"
+			destdir="${genJavadocDir}" Private="yes">
+			<classpath refid="build.class.path" />
+		</javadoc>
+	</target>
+</project>
