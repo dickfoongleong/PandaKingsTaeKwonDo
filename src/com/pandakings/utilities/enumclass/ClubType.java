@@ -20,7 +20,7 @@ public enum ClubType {
    * @param description of the type.
    * @return ClubStatus.
    */
-  public ClubType getClubType(String description) {
+  public static ClubType getClubType(String description) {
     if (description.equalsIgnoreCase("Normal")) {
       return NORMAL;
     } else if (description.equalsIgnoreCase("BBC")) {

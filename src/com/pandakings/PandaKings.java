@@ -4,16 +4,21 @@ import com.pandakings.utilities.Contact;
 import com.pandakings.utilities.Payment;
 import com.pandakings.utilities.Student;
 import com.pandakings.utilities.enumclass.Belt;
+import com.pandakings.utilities.enumclass.ClubType;
 import com.pandakings.utilities.enumclass.ExpirationStatus;
 import com.pandakings.utilities.enumclass.ParentRelationship;
 import com.pandakings.utilities.enumclass.PaymentStatus;
+import companylist.generator.CompanySearchApplication;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -31,6 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import org.apache.log4j.BasicConfigurator;
 
 public class PandaKings extends JFrame implements Runnable, WindowListener {
   private static final Color HEADER_BG = new Color(255, 0, 0);
@@ -45,14 +51,15 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
   private static final String CONTACT_INFO_FILE = "csv/contact-list.csv";
   private static final String PAYMENT_INFO_FILE = "csv/payment-list.csv";
   private static final String STUDENT_INFO_FILE = "csv/student-list.csv";
-  
+
   private static File contactListFile;
   private static File paymentListFile;
   private static File studentListFile;
   private static List<Contact> contactList;
   private static List<Payment> paymentList;
   private static List<Student> studentList;
-  
+  private static List<Integer> studentIdList;
+
   private boolean isInformationSaved;
   private JButton informationBtn;
   private JButton registrationBtn;
@@ -66,101 +73,168 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
   private JMenuItem fileSave;
   private JMenuItem fileExit;
   private JPanel mainPanel;
-  
+
   public PandaKings() {
     addWindowListener(this);
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     setTitle(APPLICATION_NAME);
     setIcon();
-    
+
     loadContactData();
     loadPaymentData();
     loadStudentData();
-    
+
     setupUserInterface();
     setupInformation();//Show the student info w/ contact (Reading purpose).
-    
+
     enableControls(true);
     pack();
-    
+
     setStatus("");
     setVisible(true);
   }
-  
+
   private void setupUserInterface() {
     setupControls();
     setupMenus;
-    
+
     getContentPane().setLayout(new BorderLayout());
-    
+
     JPanel headerPanel = new JPanel();
     headerPanel.setLayout(new BorderLayout());
     getContentPane().add(headerPanel, BorderLayout.NORTH);
     headerPanel.add(companyNameLabel, BorderLayout.WEST);
     headerPanel.add(currentTabLabel, BorderLayout.CENTER);
     headerPanel.add(dateLabel, BorderLayout.EAST);
-    
+
     mainPanel = new JPanel();
     mainPanel.setLayout(new BorderLayout());
     getContentPane().add(mainPanel, BorderLayout.CENTER);
     mainPanel.add(setupOperationPanel(), BorderLayout.WEST);
     mainPanel.add(setupStatusPanel(), BorderLayout.SOUTH);
   }
-  
+
   private void setupControls() {
-//    private JLabel status;
-//    private JLabel companyNameLabel;
-//    private JLabel currentTabLabel;
-//    private JLabel dateLabel;
     informationBtn = new JButton("Student Information");
     informationBtn.setToolTipText("Show every student's general information");
-    informationBtn.addActionListener(new informationListener());
-    
+    informationBtn.addActionListener(new InformationListener());
+
     registrationBtn = new JButton("Registration");
     registrationBtn.setToolTipText("Register new student");
-    registrationBtn.addActionListener(new registrationListener());
-    
+    registrationBtn.addActionListener(new RegistrationListener());
+
     paymentBtn = new JButton("Payment");
     paymentBtn.setToolTipText("Check payment records");
-    paymentBtn.addActionListener(new paymentListener());
-    
+    paymentBtn.addActionListener(new PaymentListener());
+
     promotionBtn = new JButton("Promotion");
     promotionBtn.setToolTipText("Check students who are ready for promotion test");
-    promotionBtn.addActionListener(new promotionListener());
+    promotionBtn.addActionListener(new PromotionListener());
+
+    companyNameLabel = new JLabel("Panda King's Taekwondo");
+    companyNameLabel.setHorizontalAlignment(JLabel.CENTER);
+
+    currentTabLabel = new JLabel("Initializing");
+    currentTabLabel.setHorizontalAlignment(JLabel.CENTER);
+
+    dateLabel = new JLabel("");
+    dateLabel.setHorizontalAlignment(JLabel.CENTER);
+
+    status = new JLabel("Initializing");
   }
-  
+
+  private class PromotionListener implements ActionListener {
+    public PromotionListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupPromotion();
+    }
+  }
+
+  private class PaymentListener implements ActionListener {
+    public PaymentListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupPayment();
+    }
+  }
+
+  private class RegistrationListener implements ActionListener {
+    public RegistrationListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupRegistration();
+    }
+  }
+
+  private class InformationListener implements ActionListener {
+    public InformationListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupInformation();
+    }
+  }
+
+  private void setupInformation() {
+    setTabTitle("Information");
+  }
+
+  private void setupRegistration() {
+    setTabTitle("Registration");
+  }
+
+  private void setupPayment() {
+    setTabTitle("Payment");
+  }
+
+  private void setupPromotion() {
+    setTabTitle("Promotion");
+  }
+
   private JPanel setupOperationPanel() {
     JPanel operationPanel = new JPanel();
-    
+
     operationPanel.setLayout(new GridLayout(4,1));
     operationPanel.setBorder(BorderFactory.createLineBorder(Color.black));
     operationPanel.add(makeFlowPanel(informationBtn, FlowLayout.CENTER));
     operationPanel.add(makeFlowPanel(registrationBtn, FlowLayout.CENTER));
     operationPanel.add(makeFlowPanel(paymentBtn, FlowLayout.CENTER));
     operationPanel.add(makeFlowPanel(promotionBtn, FlowLayout.CENTER));
-    
+
     return operationPanel;
   }
-  
+
   private JPanel setupStatusPanel() {
     JPanel statusPanel = new JPanel();
-    
+
     statusPanel.setLayout(new GridLayout(1,1));
     statusPanel.setBorder(BorderFactory.createTitledBorder(
         BorderFactory.createLineBorder(Color.black), "Status"));
     statusPanel.add(makeFlowPanel(status, FlowLayout.LEFT));
-    
+
     return statusPanel;
   }
-  
+
   private JPanel makeFlowPanel(JComponent component, int alignment) {
     JPanel panel = new JPanel();
     panel.setLayout(new FlowLayout(alignment));
     panel.add(component);
-    
+
     return panel;
   }
-  
+
   private void setIcon() {
     try {
       ImageIcon icon = new ImageIcon("com/pandakings/images/AppIcon.png");
@@ -169,65 +243,91 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
       setStatus("Cannot load icon");
     }
   }
-  
+
+  private void loadPaymentData() {
+    try {
+      paymentList = new ArrayList<Payment>();
+      paymentListFile = new File(PAYMENT_INFO_FILE);
+
+      if (!paymentListFile.createNewFile()) {
+        Scanner paymentFileScanner = new Scanner(paymentListFile);
+        Payment payment;
+        String lineInfo;
+        String[] informations;
+        int studentId;
+        int amountTotal;
+        int amountLeft;
+        String message;
+        PaymentStatus status;
+
+        while (paymentFileScanner.hasNext()) {
+          lineInfo = paymentFileScanner.nextLine();
+          informations = lineInfo.split(",");
+
+          studentId = Integer.parseInt(informations[0]);
+          amountTotal = Integer.parseInt(informations[1]);
+          amountLeft = Integer.parseInt(informations[2]);
+          message = informations[3];
+          status = PaymentStatus.getPaymentStatus(informations[4]);
+
+          payment = new Payment(studentId, amountTotal, amountLeft, message, status);
+          paymentList.add(payment);
+        }
+        paymentFileScanner.close();
+      }
+    } catch (NullPointerException npe) {
+      setStatus("Payment file cannot be open");
+    } catch (IOException ioe) {
+      setStatus("Payment file cannot be created");
+    } catch (SecurityException se) {
+      setStatus("Payment file cannot be access due to security rights");
+    } catch (NumberFormatException nfe) {
+      setStatus("Error on either following: StudentID, AmountTotal, AmountLeft");
+    }
+  }
+
   private void loadStudentData() {
     try {
       studentList = new ArrayList<Student>();
       studentListFile = new File(STUDENT_INFO_FILE);
-      
+
       if (!studentListFile.createNewFile()) {
         Scanner studentFileScanner = new Scanner(studentListFile);
         Student currentStudent;
         String lineInfo;
         String[] informations;
+        int id;
         String name;
         Belt currentBelt;
-        String contactListStr;
-        String[] contactListParts;
-        List<Integer> contactListIds = new ArrayList<Integer>();
-        List<Contact> currentStudentContactList = new ArrayList<Contact>();
-        int paymentAmount;
-        PaymentStatus paymentState;
+        List<Contact> currentStudentContactList;
+        ClubType clubType;
+        List<Payment> currentStudentPaymentRecord;
         ExpirationStatus expiredState;
         Date birthday;
         Date startDate;
         Date expiredDate;
-        
+
         while (studentFileScanner.hasNext()) {
           lineInfo = studentFileScanner.nextLine();
           informations = lineInfo.split(",");
-          name = informations[0];
-          currentBelt = Belt.getBelt(Integer.parseInt(informations[1]));
-          contactListStr = informations[2];
-          paymentAmount = Integer.parseInt(informations[3]);
-          paymentState = PaymentStatus.getPaymentStatus(Integer.parseInt(informations[4]));
-          expiredState = ExpirationStatus.getExpirationStatus(Integer.parseInt(informations[5]));
-          birthday = DATE_FORMAT.parse(informations[6]);
-          startDate = DATE_FORMAT.parse(informations[7]);
-          expiredDate = DATE_FORMAT.parse(informations[8]);
-          
-          contactListStr = contactListStr.replace("[","");
-          contactListStr = contactListStr.replace("]","");
-          contactListParts = contactListStr.split("/");
-          for (String str : contactListParts) {
-            contactListIds.add(Integer.parseInt(str));
-          }
-          
-          Contact studentContact;
-          for (int id : contactListIds) {
-            for (int i = 0; i < contactList.size(); i++) {
-              studentContact = contactList.get(i);
-              if (studentContact.getId() == id) {
-                currentStudentContactList.add(studentContact);
-                break;
-              }
-            }
-          }
-          
-          currentStudent = new Student(name, currentBelt, currentStudentContactList, 
-              paymentAmount, paymentState, expiredState, birthday, startDate, expiredDate);
-          
+          id = Integer.parseInt(informations[0]);
+          name = informations[1];
+          currentBelt = Belt.getBelt(Integer.parseInt(informations[2]));
+          clubType = ClubType.getClubType(informations[3]);
+          expiredState = ExpirationStatus.getExpirationStatus(informations[4]);
+          birthday = DATE_FORMAT.parse(informations[5]);
+          startDate = DATE_FORMAT.parse(informations[6]);
+          expiredDate = DATE_FORMAT.parse(informations[7]);
+
+          currentStudentContactList = getStudentContactList(id);
+          currentStudentPaymentRecord = getStudentPaymentRecord(id);
+
+          currentStudent = new Student(id, name, currentBelt, currentStudentContactList,
+              clubType, currentStudentPaymentRecord, expiredState, 
+              birthday, startDate, expiredDate);
+
           studentList.add(currentStudent);
+          studentIdList.add(id);
         }
         studentFileScanner.close();
       }
@@ -241,26 +341,27 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
       setStatus("Student-info-file cannot be access due to security rights");
     }
   }
-  
+
   private void loadContactData() {
     try {
       contactList = new ArrayList<Contact>();
       contactListFile = new File(CONTACT_INFO_FILE);
+
       if (!contactListFile.createNewFile()) {
         Scanner fileScanner = new Scanner(contactListFile);
         Contact currentContact;
         String lineInfo;
         String[] informations;
-        int id;
+        int studentId;
         String name;
         String phone;
         ParentRelationship relationship;
         String otherRelationship;
-        
+
         while (fileScanner.hasNext()) {
           lineInfo = fileScanner.nextLine();
           informations = lineInfo.split(",");
-          id = Integer.parseInt(informations[0]);
+          studentId = Integer.parseInt(informations[0]);
           name = informations[1];
           phone = informations[2];
           relationship = ParentRelationship.getParentRelationship(informations[3]);
@@ -269,11 +370,11 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
           } else {
             otherRelationship = "";
           }
-          
-          currentContact = new Contact(id, name, phone, relationship, otherRelationship);
+
+          currentContact = new Contact(studentId, name, phone, relationship, otherRelationship);
           contactList.add(currentContact);
         }
-        
+
         fileScanner.close();
       }
     } catch (NumberFormatException nfe) {
@@ -284,11 +385,39 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
       setStatus("Cannot access the contact file due to security rights");
     }
   }
-  
+
+  private List<Contact> getStudentContactList(int id) {
+    List<Contact> studentContactList = new ArrayList<Contact>();
+
+    for (Contact contact : contactList) {
+      if (contact.getStudentId() == id) {
+        studentContactList.add(contact);
+      }
+    }
+
+    return studentContactList;
+  }
+
+  private List<Payment> getStudentPaymentRecord(int id) {
+    List<Payment> studentPaymentRecord = new ArrayList<Payment>();
+
+    for (Payment record : paymentList) {
+      if (record.getStudentId() == id) {
+        studentPaymentRecord.add(record);
+      }
+    }
+
+    return studentPaymentRecord;
+  }
+
+  private void setTabTitle(String title) {
+    currentTabLabel.setText(title);
+  }
+
   private void setStatus(String message) {
     status.setText(message);
   }
-  
+
   @Override
   public void windowOpened(WindowEvent e) {
   }
@@ -320,9 +449,8 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
 
   @Override
   public void run() {
-    // TODO Auto-generated method stub
   }
-  
+
   /**
    * The execution point of the program.
    * 

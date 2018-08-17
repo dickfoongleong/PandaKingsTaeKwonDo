@@ -129,7 +129,8 @@ public class Contact {
     if (relationship != ParentRelationship.OTHER) {
       return studentId + "," + name + "," + phone + "," + relationship.description();
     } else {
-      return studentId + "," + name + "," + phone + "," + otherRelationship;
+      return studentId + "," + name + "," + phone + "," 
+          + relationship.description() + "," + otherRelationship;
     }
     
   }

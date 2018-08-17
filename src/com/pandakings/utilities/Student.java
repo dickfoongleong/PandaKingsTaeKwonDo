@@ -322,4 +322,9 @@ public class Student {
   public void setExpiredDate(Date expiredDate) {
     this.expiredDate = expiredDate;
   }
+  
+  public String toString() {
+    return id + "," + name + "," + currentBelt + "," + clubType + ","
+        + expiredState + "," + birthday + "," + startDate + "," + expiredDate;
+  }
 }

@@ -66,7 +66,7 @@ public class Payment {
    * Get the id of the student.
    * @return studentId.
    */
-  public int getStudetnId() {
+  public int getStudentId() {
     return studentId;
   }
   
