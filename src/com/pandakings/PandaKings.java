@@ -8,25 +8,27 @@ import com.pandakings.utilities.enumclass.ClubType;
 import com.pandakings.utilities.enumclass.ExpirationStatus;
 import com.pandakings.utilities.enumclass.ParentRelationship;
 import com.pandakings.utilities.enumclass.PaymentStatus;
-import companylist.generator.CompanySearchApplication;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
+import java.util.TimeZone;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -34,18 +36,19 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import org.apache.log4j.BasicConfigurator;
+import javax.swing.KeyStroke;
 
 public class PandaKings extends JFrame implements Runnable, WindowListener {
+  private static final Calendar CALENDAR = Calendar.getInstance();
   private static final Color HEADER_BG = new Color(255, 0, 0);
   private static final Color MAIN_FG = new Color(255, 255, 255);
   private static final Color SIDE_BG = new Color(0, 0, 200);
   private static final Color BOTTOM_BG = new Color(184, 207, 229);
   private static final Color BOTTOM_FG = new Color(51, 51, 51);
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("mm/dd/yyyy");
-  private static final int UNKNOWN = -1;
+  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
   private static final long serialVersionUID = 20180813;
   private static final String APPLICATION_NAME = "Panda King's Tae Kwon Do";
   private static final String CONTACT_INFO_FILE = "csv/contact-list.csv";
@@ -69,11 +72,14 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
   private JLabel companyNameLabel;
   private JLabel currentTabLabel;
   private JLabel dateLabel;
-  private JMenu fileMenue;
+  private JMenu fileMenu;
   private JMenuItem fileSave;
   private JMenuItem fileExit;
   private JPanel mainPanel;
 
+  /**
+   * Setup the application.
+   */
   public PandaKings() {
     addWindowListener(this);
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -87,7 +93,7 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     setupUserInterface();
     setupInformation();//Show the student info w/ contact (Reading purpose).
 
-    enableControls(true);
+    enableControls();
     pack();
 
     setStatus("");
@@ -96,16 +102,17 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
 
   private void setupUserInterface() {
     setupControls();
-    setupMenus;
+    setupMenus();
 
     getContentPane().setLayout(new BorderLayout());
 
     JPanel headerPanel = new JPanel();
     headerPanel.setLayout(new BorderLayout());
+    headerPanel.setBackground(HEADER_BG);
     getContentPane().add(headerPanel, BorderLayout.NORTH);
     headerPanel.add(companyNameLabel, BorderLayout.WEST);
     headerPanel.add(currentTabLabel, BorderLayout.CENTER);
-    headerPanel.add(dateLabel, BorderLayout.EAST);
+    headerPanel.add(setupDatePanel(), BorderLayout.EAST);
 
     mainPanel = new JPanel();
     mainPanel.setLayout(new BorderLayout());
@@ -137,12 +144,74 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     currentTabLabel = new JLabel("Initializing");
     currentTabLabel.setHorizontalAlignment(JLabel.CENTER);
 
-    dateLabel = new JLabel("");
+    dateLabel = new JLabel(DATE_FORMAT.format(CALENDAR.getTime()));
     dateLabel.setHorizontalAlignment(JLabel.CENTER);
 
     status = new JLabel("Initializing");
   }
-
+  
+  private void enableControls() {
+    fileSave.setEnabled(true);
+    fileExit.setEnabled(true);
+    
+    colorForeground();
+    
+    informationBtn.setEnabled(true);
+    registrationBtn.setEnabled(true);
+    paymentBtn.setEnabled(true);
+    promotionBtn.setEnabled(true);
+  }
+  
+  private void setupMenus() {
+    JMenuBar menuBar = new JMenuBar();
+    setJMenuBar(menuBar);
+    
+    fileMenu = new JMenu("File");
+    fileMenu.setMnemonic(KeyEvent.VK_F);
+    fileMenu.setToolTipText("Menu items related to access files");
+    menuBar.add(fileMenu);
+    
+    setupFileMenu();
+  }
+  
+  private void setupFileMenu() {
+    fileSave = new JMenuItem("Save updates");
+    fileSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.ALT_MASK));
+    fileSave.setMnemonic(KeyEvent.VK_S);
+    fileSave.setToolTipText("Save the updates");
+    fileSave.addActionListener(new FileSaveListener());
+    fileMenu.add(fileSave);
+    
+    fileExit = new JMenuItem("Exit");
+    fileExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.ALT_MASK));
+    fileExit.setMnemonic(KeyEvent.VK_Q);
+    fileExit.setToolTipText("Quit the application");
+    fileExit.addActionListener(new FileExitListener());
+    fileMenu.add(fileExit);
+  }
+  
+  private class FileSaveListener implements ActionListener {
+    public FileSaveListener() {
+      
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      saveFile();
+    }
+  }
+  
+  private class FileExitListener implements ActionListener {
+    public FileExitListener() {
+      
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      closeApplication();
+    }
+  }
+  
   private class PromotionListener implements ActionListener {
     public PromotionListener() {
 
@@ -187,6 +256,21 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     }
   }
 
+  private void saveFile() {
+    
+    
+    isInformationSaved = true;
+  }
+  
+  private void closeApplication() {
+    if (!isInformationSaved) {
+      saveFile();
+    }
+    
+    setVisible(false);
+    System.exit(0);
+  }
+  
   private void setupInformation() {
     setTabTitle("Information");
   }
@@ -227,6 +311,18 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     return statusPanel;
   }
 
+  private JPanel setupDatePanel() {
+    JPanel datePanel = new JPanel();
+    
+    datePanel.setLayout(new GridLayout(1,1));
+    datePanel.setBackground(HEADER_BG);
+    datePanel.setBorder(BorderFactory.createTitledBorder(
+        BorderFactory.createLineBorder(Color.black), "Date"));
+    datePanel.add(dateLabel);
+    
+    return datePanel;
+  }
+  
   private JPanel makeFlowPanel(JComponent component, int alignment) {
     JPanel panel = new JPanel();
     panel.setLayout(new FlowLayout(alignment));
@@ -235,6 +331,16 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     return panel;
   }
 
+  private void colorForeground() {
+//    private static final Color HEADER_BG = new Color(255, 0, 0);
+    companyNameLabel.setForeground(MAIN_FG);
+//    private static final Color MAIN_FG = new Color(255, 255, 255);
+//    private static final Color SIDE_BG = new Color(0, 0, 200);
+//    private static final Color BOTTOM_BG = new Color(184, 207, 229);
+//    private static final Color BOTTOM_FG = new Color(51, 51, 51);
+    
+  }
+  
   private void setIcon() {
     try {
       ImageIcon icon = new ImageIcon("com/pandakings/images/AppIcon.png");
