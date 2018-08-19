@@ -10,7 +10,9 @@ import com.pandakings.utilities.enumclass.ParentRelationship;
 import com.pandakings.utilities.enumclass.PaymentStatus;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,10 +28,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Scanner;
-import java.util.TimeZone;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -39,15 +40,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 
 public class PandaKings extends JFrame implements Runnable, WindowListener {
   private static final Calendar CALENDAR = Calendar.getInstance();
-  private static final Color HEADER_BG = new Color(255, 0, 0);
-  private static final Color MAIN_FG = new Color(255, 255, 255);
-  private static final Color SIDE_BG = new Color(0, 0, 200);
-  private static final Color BOTTOM_BG = new Color(184, 207, 229);
-  private static final Color BOTTOM_FG = new Color(51, 51, 51);
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
   private static final long serialVersionUID = 20180813;
   private static final String APPLICATION_NAME = "Panda King's Tae Kwon Do";
@@ -76,6 +73,10 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
   private JMenuItem fileSave;
   private JMenuItem fileExit;
   private JPanel mainPanel;
+  private JPanel headerSide1Panel;
+  private JPanel headerSide2Panel;
+  private JPanel headerMidPanel;
+
 
   /**
    * Setup the application.
@@ -91,12 +92,11 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     loadStudentData();
 
     setupUserInterface();
-    setupInformation();//Show the student info w/ contact (Reading purpose).
+    setupInformation();
 
     enableControls();
-    pack();
+    setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-    setStatus("");
     setVisible(true);
   }
 
@@ -106,74 +106,76 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
 
     getContentPane().setLayout(new BorderLayout());
 
-    JPanel headerPanel = new JPanel();
-    headerPanel.setLayout(new BorderLayout());
-    headerPanel.setBackground(HEADER_BG);
-    getContentPane().add(headerPanel, BorderLayout.NORTH);
-    headerPanel.add(companyNameLabel, BorderLayout.WEST);
-    headerPanel.add(currentTabLabel, BorderLayout.CENTER);
-    headerPanel.add(setupDatePanel(), BorderLayout.EAST);
-
     mainPanel = new JPanel();
     mainPanel.setLayout(new BorderLayout());
+    
+    getContentPane().add(setupHeaderPanel(), BorderLayout.NORTH);
+    getContentPane().add(setupStatusPanel(), BorderLayout.SOUTH);
+    getContentPane().add(setupOperationPanel(), BorderLayout.WEST);
     getContentPane().add(mainPanel, BorderLayout.CENTER);
-    mainPanel.add(setupOperationPanel(), BorderLayout.WEST);
-    mainPanel.add(setupStatusPanel(), BorderLayout.SOUTH);
+
+    colorInterface();
   }
 
   private void setupControls() {
-    informationBtn = new JButton("Student Information");
+    informationBtn = new JButton("Student");
+    informationBtn.setFont(new Font(informationBtn.getFont().getName(), Font.PLAIN, 17));
     informationBtn.setToolTipText("Show every student's general information");
     informationBtn.addActionListener(new InformationListener());
 
     registrationBtn = new JButton("Registration");
+    registrationBtn.setFont(new Font(registrationBtn.getFont().getName(), Font.PLAIN, 18));
     registrationBtn.setToolTipText("Register new student");
     registrationBtn.addActionListener(new RegistrationListener());
 
     paymentBtn = new JButton("Payment");
+    paymentBtn.setFont(new Font(paymentBtn.getFont().getName(), Font.PLAIN, 18));
     paymentBtn.setToolTipText("Check payment records");
     paymentBtn.addActionListener(new PaymentListener());
 
     promotionBtn = new JButton("Promotion");
+    promotionBtn.setFont(new Font(promotionBtn.getFont().getName(), Font.PLAIN, 18));
     promotionBtn.setToolTipText("Check students who are ready for promotion test");
     promotionBtn.addActionListener(new PromotionListener());
 
-    companyNameLabel = new JLabel("Panda King's Taekwondo");
-    companyNameLabel.setHorizontalAlignment(JLabel.CENTER);
+    companyNameLabel = new JLabel(" Panda King's Tae Kwon Do ");
+    companyNameLabel.setFont(new Font(companyNameLabel.getFont().getName(), Font.BOLD, 20));
+    companyNameLabel.setHorizontalAlignment(JLabel.LEFT);
 
-    currentTabLabel = new JLabel("Initializing");
+    
+    currentTabLabel = new JLabel();
+    currentTabLabel.setFont(new Font(currentTabLabel.getFont().getName(), Font.PLAIN, 20));
     currentTabLabel.setHorizontalAlignment(JLabel.CENTER);
 
     dateLabel = new JLabel(DATE_FORMAT.format(CALENDAR.getTime()));
-    dateLabel.setHorizontalAlignment(JLabel.CENTER);
+    dateLabel.setFont(new Font(dateLabel.getFont().getName(), Font.PLAIN, 15));
+    dateLabel.setHorizontalAlignment(JLabel.RIGHT);
 
     status = new JLabel("Initializing");
   }
-  
+
   private void enableControls() {
     fileSave.setEnabled(true);
     fileExit.setEnabled(true);
-    
-    colorForeground();
-    
+
     informationBtn.setEnabled(true);
     registrationBtn.setEnabled(true);
     paymentBtn.setEnabled(true);
     promotionBtn.setEnabled(true);
   }
-  
+
   private void setupMenus() {
     JMenuBar menuBar = new JMenuBar();
     setJMenuBar(menuBar);
-    
+
     fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
     fileMenu.setToolTipText("Menu items related to access files");
     menuBar.add(fileMenu);
-    
+
     setupFileMenu();
   }
-  
+
   private void setupFileMenu() {
     fileSave = new JMenuItem("Save updates");
     fileSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.ALT_MASK));
@@ -181,7 +183,7 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     fileSave.setToolTipText("Save the updates");
     fileSave.addActionListener(new FileSaveListener());
     fileMenu.add(fileSave);
-    
+
     fileExit = new JMenuItem("Exit");
     fileExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.ALT_MASK));
     fileExit.setMnemonic(KeyEvent.VK_Q);
@@ -189,113 +191,89 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     fileExit.addActionListener(new FileExitListener());
     fileMenu.add(fileExit);
   }
-  
-  private class FileSaveListener implements ActionListener {
-    public FileSaveListener() {
-      
-    }
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      saveFile();
-    }
-  }
-  
-  private class FileExitListener implements ActionListener {
-    public FileExitListener() {
-      
-    }
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      closeApplication();
-    }
-  }
-  
-  private class PromotionListener implements ActionListener {
-    public PromotionListener() {
-
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      setupPromotion();
-    }
-  }
-
-  private class PaymentListener implements ActionListener {
-    public PaymentListener() {
-
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      setupPayment();
-    }
-  }
-
-  private class RegistrationListener implements ActionListener {
-    public RegistrationListener() {
-
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      setupRegistration();
-    }
-  }
-
-  private class InformationListener implements ActionListener {
-    public InformationListener() {
-
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      setupInformation();
-    }
-  }
 
   private void saveFile() {
-    
-    
+
+
     isInformationSaved = true;
   }
-  
+
   private void closeApplication() {
     if (!isInformationSaved) {
       saveFile();
     }
-    
+
     setVisible(false);
     System.exit(0);
   }
-  
+
   private void setupInformation() {
+    clearMainPanel();
+    informationBtn.setBorderPainted(true);
     setTabTitle("Information");
+
+    JScrollPane informationPane = new JScrollPane(makeInfoMainPanel());
+    informationPane.getVerticalScrollBar().setPreferredSize(new Dimension(0,0));
+    mainPanel.add(makeInfoHeaderPanel(), BorderLayout.NORTH);
+    mainPanel.add(informationPane, BorderLayout.CENTER);
+    setStatus("Showing all student' information");
   }
 
   private void setupRegistration() {
+    clearMainPanel();
+    registrationBtn.setBorderPainted(true);
     setTabTitle("Registration");
+    
+    setStatus("Register new student");
   }
 
   private void setupPayment() {
+    clearMainPanel();
+    paymentBtn.setBorderPainted(true);
+    
     setTabTitle("Payment");
   }
 
   private void setupPromotion() {
+    clearMainPanel();
+    promotionBtn.setBorderPainted(true);
+    
     setTabTitle("Promotion");
   }
 
+  private JPanel setupHeaderPanel() {
+    JPanel headerPanel = new JPanel();
+    headerPanel.setLayout(new GridLayout(3,1));
+    
+    headerSide1Panel = new JPanel();
+    headerSide2Panel = new JPanel();
+    
+    headerMidPanel = new JPanel();
+    headerMidPanel.setLayout(new GridLayout(1,3));
+    headerMidPanel.add(companyNameLabel);
+    headerMidPanel.add(currentTabLabel);
+    headerMidPanel.add(dateLabel);
+    
+    headerPanel.add(headerSide1Panel);
+    headerPanel.add(headerMidPanel);
+    headerPanel.add(headerSide2Panel);
+    
+    return headerPanel;
+  }
+  
   private JPanel setupOperationPanel() {
     JPanel operationPanel = new JPanel();
 
-    operationPanel.setLayout(new GridLayout(4,1));
+    operationPanel.setLayout(new BoxLayout(operationPanel,BoxLayout.Y_AXIS));
     operationPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-    operationPanel.add(makeFlowPanel(informationBtn, FlowLayout.CENTER));
-    operationPanel.add(makeFlowPanel(registrationBtn, FlowLayout.CENTER));
-    operationPanel.add(makeFlowPanel(paymentBtn, FlowLayout.CENTER));
-    operationPanel.add(makeFlowPanel(promotionBtn, FlowLayout.CENTER));
+    operationPanel.add(informationBtn);
+    operationPanel.add(paymentBtn);
+    operationPanel.add(promotionBtn);
+    operationPanel.add(registrationBtn);
+    //operationPanel.add(makeFlowPanel(informationBtn, FlowLayout.CENTER));
+    //operationPanel.add(makeFlowPanel(registrationBtn, FlowLayout.CENTER));
+    //operationPanel.add(makeFlowPanel(paymentBtn, FlowLayout.CENTER));
+    //operationPanel.add(makeFlowPanel(promotionBtn, FlowLayout.CENTER));
 
     return operationPanel;
   }
@@ -311,18 +289,6 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     return statusPanel;
   }
 
-  private JPanel setupDatePanel() {
-    JPanel datePanel = new JPanel();
-    
-    datePanel.setLayout(new GridLayout(1,1));
-    datePanel.setBackground(HEADER_BG);
-    datePanel.setBorder(BorderFactory.createTitledBorder(
-        BorderFactory.createLineBorder(Color.black), "Date"));
-    datePanel.add(dateLabel);
-    
-    return datePanel;
-  }
-  
   private JPanel makeFlowPanel(JComponent component, int alignment) {
     JPanel panel = new JPanel();
     panel.setLayout(new FlowLayout(alignment));
@@ -331,16 +297,110 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     return panel;
   }
 
-  private void colorForeground() {
-//    private static final Color HEADER_BG = new Color(255, 0, 0);
-    companyNameLabel.setForeground(MAIN_FG);
-//    private static final Color MAIN_FG = new Color(255, 255, 255);
-//    private static final Color SIDE_BG = new Color(0, 0, 200);
-//    private static final Color BOTTOM_BG = new Color(184, 207, 229);
-//    private static final Color BOTTOM_FG = new Color(51, 51, 51);
+  private JPanel makeInfoMainPanel() {
+    JPanel infoMainPanel = new JPanel();
+    infoMainPanel.setLayout(new GridLayout(studentList.size(), 4));
     
+    JLabel studentNameLabel;
+    JLabel studentBeltLabel;
+    JLabel studentClubLabel;
+    JLabel studentBirthLabel;
+    JPanel studentNamePanel;
+    JPanel studentBeltPanel;
+    JPanel studentClubPanel;
+    JPanel studentBirthPanel;
+    
+    for (Student student : studentList) {
+      studentNameLabel = new JLabel(student.getName());
+      studentNameLabel.setFont(new Font(studentNameLabel.getFont().getName(), Font.PLAIN, 14));
+      studentNamePanel = makeFlowPanel(studentNameLabel, FlowLayout.CENTER);
+      studentNamePanel.setBorder(BorderFactory.createLineBorder(Color.black));
+      
+      studentBeltLabel = new JLabel(getStudentBeltString(student.getCurrentBelt()));
+      studentBeltLabel.setFont(new Font(studentBeltLabel.getFont().getName(), Font.PLAIN, 14));
+      studentBeltPanel = makeFlowPanel(studentBeltLabel, FlowLayout.CENTER);
+      studentBeltPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+      
+      studentClubLabel = new JLabel(student.getClubType().description());
+      studentClubLabel.setFont(new Font(studentClubLabel.getFont().getName(), Font.PLAIN, 14));
+      studentClubPanel = makeFlowPanel(studentClubLabel, FlowLayout.CENTER);
+      studentClubPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+      
+      studentBirthLabel = new JLabel(DATE_FORMAT.format(student.getBirthday()));
+      studentBirthLabel.setFont(new Font(studentBirthLabel.getFont().getName(), Font.PLAIN, 14));
+      studentBirthPanel = makeFlowPanel(studentBirthLabel, FlowLayout.CENTER);
+      studentBirthPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+      
+      infoMainPanel.add(studentNamePanel);
+      infoMainPanel.add(studentBeltPanel);
+      infoMainPanel.add(studentClubPanel);
+      infoMainPanel.add(studentBirthPanel);
+    }
+    
+    return infoMainPanel;
   }
   
+  private JPanel makeInfoHeaderPanel() {
+    JPanel informationHeaderPanel = new JPanel();
+    informationHeaderPanel.setLayout(new GridLayout(1,4));
+    
+    JLabel nameLabel = new JLabel("Name");
+    nameLabel.setFont(new Font(nameLabel.getFont().getName(), Font.PLAIN, 15));
+    JPanel namePanel = makeFlowPanel(nameLabel, FlowLayout.CENTER);
+    namePanel.setBorder(BorderFactory.createLineBorder(Color.black));
+    
+    JLabel beltLabel = new JLabel("Belt");
+    beltLabel.setFont(new Font(beltLabel.getFont().getName(), Font.PLAIN, 15));
+    JPanel beltPanel = makeFlowPanel(beltLabel, FlowLayout.CENTER);
+    beltPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+    
+    JLabel clubLabel = new JLabel("Club");
+    clubLabel.setFont(new Font(clubLabel.getFont().getName(), Font.PLAIN, 15));
+    JPanel clubPanel = makeFlowPanel(clubLabel, FlowLayout.CENTER);
+    clubPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+    
+    JLabel birthLabel = new JLabel("Birthday");
+    birthLabel.setFont(new Font(birthLabel.getFont().getName(), Font.PLAIN, 15));
+    JPanel birthPanel = makeFlowPanel(birthLabel, FlowLayout.CENTER);
+    birthPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+
+    informationHeaderPanel.add(namePanel);
+    informationHeaderPanel.add(beltPanel);
+    informationHeaderPanel.add(clubPanel);
+    informationHeaderPanel.add(birthPanel);
+    
+    return informationHeaderPanel;
+  }
+  
+  private void clearMainPanel() {
+    mainPanel.removeAll();
+    mainPanel.revalidate();
+    mainPanel.repaint();
+    colorInterface();
+  }
+  
+  private void colorInterface() {
+    headerSide1Panel.setBackground(new Color(250,250,250));
+    headerSide2Panel.setBackground(new Color(250,250,250));
+    headerMidPanel.setBackground(new Color(179,0,0));
+    
+    companyNameLabel.setForeground(Color.white);
+    currentTabLabel.setForeground(Color.white);
+    dateLabel.setForeground(Color.white);
+    
+    informationBtn.setOpaque(false);
+    informationBtn.setBorderPainted(false);
+    
+    registrationBtn.setOpaque(false);
+    registrationBtn.setBorderPainted(false);
+    
+    paymentBtn.setOpaque(false);
+    paymentBtn.setBorderPainted(false);
+    
+    promotionBtn.setOpaque(false);
+    promotionBtn.setBorderPainted(false);
+  }
+
   private void setIcon() {
     try {
       ImageIcon icon = new ImageIcon("com/pandakings/images/AppIcon.png");
@@ -395,6 +455,7 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
   private void loadStudentData() {
     try {
       studentList = new ArrayList<Student>();
+      studentIdList = new ArrayList<Integer>();
       studentListFile = new File(STUDENT_INFO_FILE);
 
       if (!studentListFile.createNewFile()) {
@@ -492,6 +553,35 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
     }
   }
 
+  private String getStudentBeltString(Belt belt) {
+    switch (belt) {
+      case WHITE:
+        return "WHITE";
+      case YELLOW:
+        return "YELLOW";
+      case ORANGE:
+        return "ORANGE";
+      case GREEN:
+        return "GREEN";
+      case BLUE:
+        return "BLUE";
+      case PURPLE:
+        return "PURPLE";
+      case RED:
+        return "RED";
+      case BROWN:
+        return "BROWN";
+      case RED_BLACK:
+        return "RED/BLACK";
+      case SEMI_BLACK:
+        return "SEMI BLACK";
+      case BLACK:
+        return "BLACK";
+      default:
+        return "UNKNOWN";
+    }
+  }
+  
   private List<Contact> getStudentContactList(int id) {
     List<Contact> studentContactList = new ArrayList<Contact>();
 
@@ -555,6 +645,72 @@ public class PandaKings extends JFrame implements Runnable, WindowListener {
 
   @Override
   public void run() {
+  }
+
+  private class FileSaveListener implements ActionListener {
+    public FileSaveListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      saveFile();
+    }
+  }
+
+  private class FileExitListener implements ActionListener {
+    public FileExitListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      closeApplication();
+    }
+  }
+
+  private class PromotionListener implements ActionListener {
+    public PromotionListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupPromotion();
+    }
+  }
+
+  private class PaymentListener implements ActionListener {
+    public PaymentListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupPayment();
+    }
+  }
+
+  private class RegistrationListener implements ActionListener {
+    public RegistrationListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupRegistration();
+    }
+  }
+
+  private class InformationListener implements ActionListener {
+    public InformationListener() {
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      setupInformation();
+    }
   }
 
   /**
