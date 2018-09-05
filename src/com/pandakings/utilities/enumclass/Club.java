@@ -1,13 +1,13 @@
 package com.pandakings.utilities.enumclass;
 
-public enum ClubType {
+public enum Club {
   NORMAL("Normal"),
   BLACK_BELT_CLUB("BBC"),
   MASTER_CLUB("Master-Club");
 
   private final String description;
   
-  ClubType(String preDescription) {
+  Club(String preDescription) {
     description = preDescription;
   }
   
@@ -20,7 +20,7 @@ public enum ClubType {
    * @param description of the type.
    * @return ClubStatus.
    */
-  public static ClubType getClubType(String description) {
+  public static Club getClub(String description) {
     if (description.equalsIgnoreCase("Normal")) {
       return NORMAL;
     } else if (description.equalsIgnoreCase("BBC")) {

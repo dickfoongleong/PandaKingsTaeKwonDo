@@ -1,11 +1,13 @@
 package com.pandakings.utilities;
 
 import com.pandakings.utilities.enumclass.Belt;
-import com.pandakings.utilities.enumclass.ClubType;
+import com.pandakings.utilities.enumclass.Club;
 import com.pandakings.utilities.enumclass.ExpirationStatus;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Student instance class.
@@ -37,7 +39,7 @@ public class Student {
   /**
    * Student's club type.
    */
-  private ClubType clubType;
+  private Club club;
 
   /**
    * Student's payment records.
@@ -82,7 +84,7 @@ public class Student {
    *    Student's current belt level.
    * @param contactList 
    *    Student's contact list.
-   * @param clubType
+   * @param club
    *    Student's club type.
    * @param paymentRecord
    *    Record of every payment made by this student.
@@ -96,13 +98,13 @@ public class Student {
    *    Student's expired date.
    */
   public Student(int id, String name,Belt currentBelt, List<Contact> contactList, 
-      ClubType clubType, List<Payment> paymentRecord, ExpirationStatus expiredState, 
+      Club club, List<Payment> paymentRecord, ExpirationStatus expiredState, 
       Date birthday, Date startDate, Date expiredDate) {
     this.id = id;
     this.name = name;
     this.currentBelt = currentBelt;
     this.contactList = contactList;
-    this.clubType = clubType;
+    this.club = club;
     this.paymentRecord = paymentRecord;
     this.expiredState = expiredState;
     this.birthday = birthday;
@@ -118,7 +120,7 @@ public class Student {
    *    Student's name.
    * @param contactList
    *    Student's contact list.
-   * @param clubType
+   * @param club
    *    Student's club type.
    * @param paymentRecord
    *    Record of every payment made by this student.
@@ -132,13 +134,13 @@ public class Student {
    *    Student's expired date.
    */
   public Student(int id, String name, List<Contact> contactList,
-      ClubType clubType, List<Payment> paymentRecord, ExpirationStatus expiredState,
+      Club club, List<Payment> paymentRecord, ExpirationStatus expiredState,
       Date birthday, Date startDate, Date expiredDate) {
     this.id = id;
     this.name = name;
     this.currentBelt = Belt.WHITE;
     this.contactList = contactList;
-    this.clubType = clubType;
+    this.club = club;
     this.paymentRecord = paymentRecord;
     this.expiredState = expiredState;
     this.birthday = birthday;
@@ -154,7 +156,7 @@ public class Student {
    *    Student's name.
    * @param currentBelt
    *    Student's currentBelt.
-   * @param clubType
+   * @param club
    *    Student's club type.
    * @param paymentRecord
    *    Record of every payment made by this student.
@@ -167,14 +169,14 @@ public class Student {
    * @param expiredDate
    *    Student's expired date.
    */
-  public Student(int id, String name, Belt currentBelt, ClubType clubType,
+  public Student(int id, String name, Belt currentBelt, Club club,
       List<Payment> paymentRecord, ExpirationStatus expiredState,
       Date birthday, Date startDate, Date expiredDate) {
     this.id = id;
     this.name = name;
     this.currentBelt = currentBelt;
     this.contactList = new ArrayList<Contact>();
-    this.clubType = clubType;
+    this.club = club;
     this.paymentRecord = paymentRecord;
     this.expiredState = expiredState;
     this.birthday = birthday;
@@ -195,13 +197,7 @@ public class Student {
    * @param contactToDelete The contact to delete.
    */
   public void removeContact(Contact contactToDelete) {
-    String contactName = contactToDelete.getName();
-    
-    for (Contact contact : contactList) {
-      if (contact.getName().equalsIgnoreCase(contactName)) {
-        contactList.remove(contact);
-      }
-    }
+    contactList.remove(contactToDelete);
   }
   
   /**
@@ -237,10 +233,10 @@ public class Student {
   
   /**
    * Get the student's club type.
-   * @return clubType.
+   * @return club.
    */
-  public ClubType getClubType() {
-    return clubType;
+  public Club getClub() {
+    return club;
   }
 
   /**
@@ -293,10 +289,10 @@ public class Student {
 
   /**
    * Set the student's club type.
-   * @param clubType of the student.
+   * @param club of the student.
    */
-  public void setClubType(ClubType clubType) {
-    this.clubType = clubType;
+  public void setClub(Club club) {
+    this.club = club;
   }
   
   /**
@@ -309,10 +305,22 @@ public class Student {
 
   /**
    * Set the student's expired status.
-   * @param expiredState The new expired status.
+   * Private method and auto update, no calls needed.
    */
-  public void setExpireState(ExpirationStatus expiredState) {
-    this.expiredState = expiredState;
+  private void setExpiredState() {
+    Date today = Calendar.getInstance().getTime();
+    long timeDiff = expiredDate.getTime() - today.getTime();
+    
+    if (timeDiff <= 0) {
+      expiredState = ExpirationStatus.EXPIRED;
+    } else {
+      long dayDiff = TimeUnit.DAYS.convert(timeDiff, TimeUnit.MILLISECONDS);
+      if (dayDiff <= 14) {
+        expiredState = ExpirationStatus.SOON;
+      } else {
+        expiredState = ExpirationStatus.ON_GOING;
+      }
+    }
   }
 
   /**
@@ -321,10 +329,11 @@ public class Student {
    */
   public void setExpiredDate(Date expiredDate) {
     this.expiredDate = expiredDate;
+    setExpiredState();
   }
   
   public String toString() {
-    return id + "," + name + "," + currentBelt + "," + clubType + ","
+    return id + "," + name + "," + currentBelt + "," + club + ","
         + expiredState + "," + birthday + "," + startDate + "," + expiredDate;
   }
 }
